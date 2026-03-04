@@ -1,7 +1,7 @@
 const STORAGE_KEY = 'hellyeah_chats';
 const BOT_RESPONSE = 'hell yeah brother';
 const TYPING_START_MS = { min: 1000, max: 2000 };
-const TYPING_DURATION_MS = { min: 1000, max: 3000 };
+const TYPING_DURATION_MS = { min: 1000, max: 7000 };
 
 function randomBetween(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -37,9 +37,14 @@ function createChat() {
   const id = generateId();
   return {
     id,
+    title: '',
     messages: [],
     createdAt: Date.now(),
   };
+}
+
+function getChatLabel(chat) {
+  return (chat.title && chat.title.trim()) ? chat.title.trim() : formatChatDate(chat);
 }
 
 function addMessage(chat, role, content) {
@@ -79,10 +84,6 @@ function formatChatDate(chat) {
 
 let state = loadState();
 
-function getState() {
-  return state;
-}
-
 function setState(updater) {
   state = updater(state);
   saveState(state);
@@ -103,6 +104,14 @@ function ensureCurrentChat() {
     currentChatId: chat.id,
   }));
 }
+
+const SUNGLASSES_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120">
+  <path d="M40,20 L180,20 L180,80 C180,95 160,105 140,105 L60,105 C40,105 25,90 25,75 L25,35 C25,25 30,20 40,20 Z" fill="currentColor"/>
+  <path d="M360,20 L220,20 L220,80 C220,95 240,105 260,105 L340,105 C360,105 375,90 375,75 L375,35 C375,25 370,20 360,20 Z" fill="currentColor"/>
+  <rect x="180" y="20" width="40" height="15" fill="currentColor"/>
+  <path d="M25,30 L5,30 C2,30 0,32 0,35 L0,45" stroke="currentColor" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <path d="M375,30 L395,30 C398,30 400,32 400,35 L400,45" stroke="currentColor" stroke-width="8" fill="none" stroke-linecap="round"/>
+</svg>`;
 
 const elements = {
   chatList: document.getElementById('chatList'),
@@ -127,7 +136,13 @@ function renderChatList() {
 
     const dateSpan = document.createElement('span');
     dateSpan.className = 'chat-item-date';
-    dateSpan.textContent = formatChatDate(chat);
+    dateSpan.textContent = getChatLabel(chat);
+
+    const editBtn = document.createElement('button');
+    editBtn.type = 'button';
+    editBtn.className = 'chat-item-edit';
+    editBtn.setAttribute('aria-label', 'Rename chat');
+    editBtn.textContent = '✎';
 
     const deleteBtn = document.createElement('button');
     deleteBtn.type = 'button';
@@ -136,12 +151,48 @@ function renderChatList() {
     deleteBtn.textContent = '×';
 
     item.appendChild(dateSpan);
+    item.appendChild(editBtn);
     item.appendChild(deleteBtn);
     list.appendChild(item);
 
     item.addEventListener('click', (e) => {
-      if (e.target === deleteBtn) return;
+      if (e.target === deleteBtn || e.target === editBtn) return;
       setState((s) => ({ ...s, currentChatId: chat.id }));
+    });
+
+    editBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'chat-item-input';
+      input.value = chat.title || '';
+      input.setAttribute('aria-label', 'Chat name');
+      dateSpan.replaceWith(input);
+      input.focus();
+      input.select();
+
+      function saveTitle() {
+        setState((s) => ({
+          ...s,
+          chats: s.chats.map((c) =>
+            c.id === chat.id ? { ...c, title: BOT_RESPONSE } : c
+          ),
+        }));
+      }
+
+      input.addEventListener('blur', saveTitle);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          input.removeEventListener('blur', saveTitle);
+          saveTitle();
+        }
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          input.removeEventListener('blur', saveTitle);
+          setState((s) => s);
+        }
+      });
     });
 
     deleteBtn.addEventListener('click', (e) => {
@@ -163,15 +214,7 @@ function renderMessages() {
   container.innerHTML = '';
   const chat = getCurrentChat();
 
-  if (!chat) {
-    const empty = document.createElement('div');
-    empty.className = 'messages-empty';
-    empty.textContent = 'hell yeah brother';
-    container.appendChild(empty);
-    return;
-  }
-
-  if (chat.messages.length === 0) {
+  if (!chat || chat.messages.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'messages-empty';
     empty.textContent = 'hell yeah brother';
@@ -191,18 +234,7 @@ function renderMessages() {
     const avatar = document.createElement('div');
     avatar.className = 'message-avatar';
     avatar.setAttribute('aria-hidden', 'true');
-    avatar.innerHTML =
-      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120">
-  <path d="M40,20 L180,20 L180,80 C180,95 160,105 140,105 L60,105 C40,105 25,90 25,75 L25,35 C25,25 30,20 40,20 Z" fill="#000"/>
-  
-  <path d="M360,20 L220,20 L220,80 C220,95 240,105 260,105 L340,105 C360,105 375,90 375,75 L375,35 C375,25 370,20 360,20 Z" fill="#000"/>
-  
-  <rect x="180" y="20" width="40" height="15" fill="#000"/>
-  
-  <path d="M25,30 L5,30 C2,30 0,32 0,35 L0,45" stroke="#000" stroke-width="8" fill="none" stroke-linecap="round"/>
-  
-  <path d="M375,30 L395,30 C398,30 400,32 400,35 L400,45" stroke="#000" stroke-width="8" fill="none" stroke-linecap="round"/>
-</svg>`;
+    avatar.innerHTML = SUNGLASSES_SVG;
 
     if (msg.role === 'user') {
       row.appendChild(bubble);
@@ -242,6 +274,21 @@ function render() {
   renderMessages();
 }
 
+let typingStartTimeoutId = null;
+let typingEndTimeoutId = null;
+
+function cancelPendingBotResponse() {
+  if (typingStartTimeoutId != null) {
+    clearTimeout(typingStartTimeoutId);
+    typingStartTimeoutId = null;
+  }
+  if (typingEndTimeoutId != null) {
+    clearTimeout(typingEndTimeoutId);
+    typingEndTimeoutId = null;
+  }
+  removeTypingIndicator();
+}
+
 function sendMessage() {
   const input = elements.input;
   const text = input.value.trim();
@@ -253,6 +300,8 @@ function sendMessage() {
 
   input.value = '';
 
+  cancelPendingBotResponse();
+
   setState((s) => {
     const idx = s.chats.findIndex((c) => c.id === chat.id);
     if (idx < 0) return s;
@@ -262,13 +311,13 @@ function sendMessage() {
     return { ...s, chats };
   });
 
-  render();
-
   const startDelay = randomBetween(TYPING_START_MS.min, TYPING_START_MS.max);
-  setTimeout(() => {
+  typingStartTimeoutId = setTimeout(() => {
+    typingStartTimeoutId = null;
     showTypingIndicator();
     const typingDuration = randomBetween(TYPING_DURATION_MS.min, TYPING_DURATION_MS.max);
-    setTimeout(() => {
+    typingEndTimeoutId = setTimeout(() => {
+      typingEndTimeoutId = null;
       setState((s) => {
         const idx = s.chats.findIndex((c) => c.id === chat.id);
         if (idx < 0) return s;
