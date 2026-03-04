@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hellyeah</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <button type="button" class="btn-new-chat" id="btnNewChat">New chat</button>
+      <div class="chat-list" id="chatList" role="list">
+        <!-- populated by JS -->
+      </div>
+      <button type="button" class="btn-about" id="btnAbout">About</button>
+    </aside>
+    <main class="main">
+      <div class="messages" id="messages" role="log" aria-live="polite">
+        <!-- populated by JS -->
+      </div>
+      <div class="input-row">
+        <input
+          type="text"
+          class="input"
+          id="input"
+          placeholder="Type a message..."
+          autocomplete="off"
+          aria-label="Message"
+        />
+        <button type="button" class="btn-send" id="btnSend" aria-label="Send">
+          <span class="btn-send-icon" aria-hidden="true">↑</span>
+        </button>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-overlay hidden" id="modalOverlay" aria-hidden="true">
+    <div class="modal" id="modal" role="dialog" aria-labelledby="modalTitle">
+      <h2 id="modalTitle">About</h2>
+      <p>Hellyeah — a local notes app with the look of a modern chatbot. Everything is stored in your browser. The bot always says: hell yeah brother.</p>
+      <button type="button" class="btn-close-modal" id="btnCloseModal">Close</button>
+    </div>
+  </div>
+
+  <script src="dist/bundle.js"></script>
+</body>
+</html>
