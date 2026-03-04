@@ -15,7 +15,13 @@
       </div>
       <button type="button" class="btn-about" id="btnAbout">About</button>
     </aside>
+    <div class="sidebar-backdrop hidden" id="sidebarBackdrop" aria-hidden="true"></div>
     <main class="main">
+      <header class="main-header">
+        <button type="button" class="btn-menu" id="btnMenu" aria-label="Open menu">
+          <span class="btn-menu-icon" aria-hidden="true">☰</span>
+        </button>
+      </header>
       <div class="messages" id="messages" role="log" aria-live="polite">
         <!-- populated by JS -->
       </div>

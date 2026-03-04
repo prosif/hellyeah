@@ -120,9 +120,26 @@ const elements = {
   btnNewChat: document.getElementById('btnNewChat'),
   btnSend: document.getElementById('btnSend'),
   btnAbout: document.getElementById('btnAbout'),
+  btnMenu: document.getElementById('btnMenu'),
+  sidebarBackdrop: document.getElementById('sidebarBackdrop'),
   modalOverlay: document.getElementById('modalOverlay'),
   btnCloseModal: document.getElementById('btnCloseModal'),
 };
+
+function openSidebar() {
+  document.body.classList.add('sidebar-open');
+  if (elements.sidebarBackdrop) elements.sidebarBackdrop.classList.remove('hidden');
+}
+
+function closeSidebar() {
+  document.body.classList.remove('sidebar-open');
+  if (elements.sidebarBackdrop) elements.sidebarBackdrop.classList.add('hidden');
+}
+
+function toggleSidebar() {
+  document.body.classList.toggle('sidebar-open');
+  if (elements.sidebarBackdrop) elements.sidebarBackdrop.classList.toggle('hidden');
+}
 
 function renderChatList() {
   const list = elements.chatList;
@@ -158,6 +175,7 @@ function renderChatList() {
     item.addEventListener('click', (e) => {
       if (e.target === deleteBtn || e.target === editBtn) return;
       setState((s) => ({ ...s, currentChatId: chat.id }));
+      closeSidebar();
     });
 
     editBtn.addEventListener('click', (e) => {
@@ -340,10 +358,12 @@ function openNewChat() {
     chats: [chat, ...s.chats],
     currentChatId: chat.id,
   }));
+  closeSidebar();
   elements.input.focus();
 }
 
 function openAboutModal() {
+  closeSidebar();
   elements.modalOverlay.classList.remove('hidden');
   elements.modalOverlay.setAttribute('aria-hidden', 'false');
 }
@@ -370,6 +390,8 @@ function init() {
   elements.modalOverlay.addEventListener('click', (e) => {
     if (e.target === elements.modalOverlay) closeAboutModal();
   });
+  if (elements.btnMenu) elements.btnMenu.addEventListener('click', toggleSidebar);
+  if (elements.sidebarBackdrop) elements.sidebarBackdrop.addEventListener('click', closeSidebar);
 
   elements.input.focus();
 }
