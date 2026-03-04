@@ -41,24 +41,35 @@ function addMessage(chat, role, content) {
   return {
     ...chat,
     messages: [...chat.messages, { role, content }],
+    lastMessageAt: Date.now(),
   };
 }
 
 function getLastMessageDate(chat) {
   if (chat.messages.length === 0) return chat.createdAt;
-  return chat.createdAt;
+  return chat.lastMessageAt ?? chat.createdAt;
 }
 
 function formatChatDate(chat) {
   const ts = getLastMessageDate(chat);
   const d = new Date(ts);
   const now = new Date();
+  const timeStr = d.toLocaleTimeString(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
   const sameDay = d.toDateString() === now.toDateString();
-  if (sameDay) return 'Today';
+  if (sameDay) return `Today ${timeStr}`;
   const yesterday = new Date(now);
   yesterday.setDate(yesterday.getDate() - 1);
-  if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
-  return d.toLocaleDateString();
+  if (d.toDateString() === yesterday.toDateString()) return `Yesterday ${timeStr}`;
+  const dateStr = d.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: d.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
+  });
+  return `${dateStr} ${timeStr}`;
 }
 
 let state = loadState();
@@ -150,7 +161,7 @@ function renderMessages() {
   if (!chat) {
     const empty = document.createElement('div');
     empty.className = 'messages-empty';
-    empty.textContent = 'Start a new chat or select one from the list.';
+    empty.textContent = 'hell yeah brother';
     container.appendChild(empty);
     return;
   }
@@ -158,7 +169,7 @@ function renderMessages() {
   if (chat.messages.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'messages-empty';
-    empty.textContent = 'Send a message to get started.';
+    empty.textContent = 'hell yeah brother';
     container.appendChild(empty);
     return;
   }
