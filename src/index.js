@@ -1,6 +1,11 @@
 const STORAGE_KEY = 'hellyeah_chats';
 const BOT_RESPONSE = 'hell yeah brother';
-const TYPING_DELAY_MS = 700;
+const TYPING_START_MS = { min: 1000, max: 2000 };
+const TYPING_DURATION_MS = { min: 1000, max: 3000 };
+
+function randomBetween(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
 function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2);
@@ -259,21 +264,24 @@ function sendMessage() {
 
   render();
 
-  showTypingIndicator();
-
+  const startDelay = randomBetween(TYPING_START_MS.min, TYPING_START_MS.max);
   setTimeout(() => {
-    setState((s) => {
-      const idx = s.chats.findIndex((c) => c.id === chat.id);
-      if (idx < 0) return s;
-      const updated = addMessage(s.chats[idx], 'assistant', BOT_RESPONSE);
-      const chats = [...s.chats];
-      chats[idx] = updated;
-      return { ...s, chats };
-    });
-    removeTypingIndicator();
-    render();
-    elements.messages.scrollTop = elements.messages.scrollHeight;
-  }, TYPING_DELAY_MS);
+    showTypingIndicator();
+    const typingDuration = randomBetween(TYPING_DURATION_MS.min, TYPING_DURATION_MS.max);
+    setTimeout(() => {
+      setState((s) => {
+        const idx = s.chats.findIndex((c) => c.id === chat.id);
+        if (idx < 0) return s;
+        const updated = addMessage(s.chats[idx], 'assistant', BOT_RESPONSE);
+        const chats = [...s.chats];
+        chats[idx] = updated;
+        return { ...s, chats };
+      });
+      removeTypingIndicator();
+      render();
+      elements.messages.scrollTop = elements.messages.scrollHeight;
+    }, typingDuration);
+  }, startDelay);
 }
 
 function openNewChat() {
@@ -283,6 +291,7 @@ function openNewChat() {
     chats: [chat, ...s.chats],
     currentChatId: chat.id,
   }));
+  elements.input.focus();
 }
 
 function openAboutModal() {
@@ -312,6 +321,8 @@ function init() {
   elements.modalOverlay.addEventListener('click', (e) => {
     if (e.target === elements.modalOverlay) closeAboutModal();
   });
+
+  elements.input.focus();
 }
 
 init();
